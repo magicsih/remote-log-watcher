@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Unity Remote Logger</title>
+<script src="sockjs-1.0.0.min.js"></script>
+<script src="stomp.js"></script>
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<style type="text/css">
+	ul.loglist {
+		width: 100%;
+		height: 60em;
+		line-height: 1em;
+		border: 1px solid #ccc;
+		padding: 0; margin : 0;
+		overflow: scroll;
+		overflow-x: scroll;
+		list-style-type: square;
+		margin: 0;
+	}
+	ul.loglist li {
+		
+	}
+	
+	li.log.ERROR {
+		color: Red;
+	}
+	li.log.WARN {
+		color: Yellow;
+	}	
+	li.log.LogError {
+		color: Red;
+	}
+	span.appid {
+		color: Blue;
+		font-weight: Bold;
+	}
+	
+</style>
+</head>
+<body onload="disconnect(); connect();">
+	<noscript>
+		<h2 style="color: #ff0000">Seems your browser doesn't support
+			Javascript! Websocket relies on Javascript being enabled. Please
+			enable Javascript and reload this page!</h2>
+	</noscript>
+
+	<div>
+		<div role="tabpanel" id="logTabPanel">
+			<ul class="nav nav-tabs" role="tablist" id="logTabList">
+				<li role="presentation" class="active"><a href="#main" aria-controls="main" role="tab" data-toggle="tab">Main</a></li>
+			</ul>
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane active" id="main"><ul id="tabcontent_main" class="loglist"></ul></div>
+			</div>
+		</div>
+		<button onclick="connect();">Connect</button>
+		<button onclick="disconnect();">Disconnect</button>
+	</div>
+	<script
+		src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script
+		src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+	<script type="text/javascript">
+        var stompClient = null;
+        var appId = "default";
+        var canRetry = false;
+        var deviceIds = new Set();
+        
+        window.addEventListener("hashchange", doThisWhenTheHashChanges, false);
+        
+        function doThisWhenTheHashChanges(){
+        	reloadAppId();
+        	disconnect();
+        	connect();
+        }
+        
+        jQuery(document).ready(function(){
+        	reloadAppId();
+        });
+        
+    	function reloadAppId() {
+    		var currentLocation = window.location;
+        	if(currentLocation.hash.length > 0) {
+        		appId = currentLocation.hash.replace("#","");
+        	}
+    	}
+        
+        function setConnected(connected) {
+        	canRetry = connected;
+        }
+        
+        function disconnect() {
+            if (stompClient != null) {
+                stompClient.disconnect();
+                log("Disconnected");
+            }
+            setConnected(false);
+        }
+        
+        function log(message) {        	
+        	jQuery('#tabcontent_main').append('<li>' + message + '</li>');
+        	jQuery('#tabcontent_main').scrollTop(jQuery('#tabcontent_main').get(0).scrollHeight);
+        }
+
+        function connect() {
+            var socket = new SockJS('/unity');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                setConnected(true);
+                log('Connected: ' + frame);
+                log("Tab will be created if a new device starts to send messages.");
+                
+                log("Listening from application ID <span class='appid'>" + appId + "</span>. application ID can be changed by using a hash tag with URL like /#appId");
+                stompClient.subscribe('/topic/' + appId, function(msg){
+                	var log = JSON.parse(msg.body);
+                	handleLog(log.senderId, log.senderHost, log.type, log.message);
+                });
+            }, function(msg) {
+            	if(canRetry) {
+            		connect();
+            	}
+            });
+        }
+        function handleLog(senderId, senderHost, type, message) {
+	
+        	if(deviceIds.has(senderId) == false) {
+        		deviceIds.add(senderId);
+        		
+        		jQuery('ul#logTabList li').removeClass('active');
+        		jQuery('#logTabPanel div.tab-content div').removeClass('active');
+        		
+        		jQuery('ul#logTabList').append('<li role="presentation" class="active"><a href="#' + senderId.replace(/\./g,'_') +'" aria-controls="' + senderId.replace(/\./g,'_') + '" role="tab" data-toggle="tab">' + senderId + '</a></li>');
+            	jQuery('#logTabPanel div.tab-content').append('<div role="tabpanel" class="tab-pane active" id="'+ senderId.replace(/\./g,'_') +'"><ul id="tabcontent_' +  senderId.replace(/\./g,'_') + '" class="loglist"></ul></div>');
+            	
+            	
+            	jQuery('#logTabPanel a:last').tab('show');
+				jQuery('#logTabPanel a:last').click(function (e) { 
+	           		e.preventDefault();
+	                jQuery(this).tab('show');
+	           	 });
+        	}
+        	
+        	showMessage(senderId, type, message);
+        }
+        
+        function showMessage(senderId, type, message) {
+        	jQuery('#tabcontent_' + senderId.replace(/\./g,'_')).append('<li class="log ' + type + '">[' + type + '] ' + message + '</li>');
+        	jQuery('#tabcontent_' + senderId.replace(/\./g,'_')).scrollTop(jQuery('#tabcontent_' + senderId.replace(/\./g,'_')).get(0).scrollHeight);
+        }
+        
+        jQuery('#logTabPanel a:last').click(function (e) { 
+       		e.preventDefault()
+            jQuery(this).tab('show');
+       	 });
+        
+        function replaceAll(find, replace, str) {
+        	
+        }
+    </script>
+</body>
+</html>
