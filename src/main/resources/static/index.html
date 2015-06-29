@@ -21,20 +21,20 @@
 		
 	}
 	
-	li.log.ERROR {
-		color: Red;
-	}
-	li.log.WARN {
+	li.log.WARN, li.log.Warning {
 		color: Yellow;
 	}	
-	li.log.LogError ,li.log.Exception,li.log.Error,li.log.Warning{
+	li.log.ERROR, li.log.LogError, li.log.Error {
 		color: Red;
-	}	
+		font-weight: Bold;
+	}
+	li.log.Exception {
+		color: Red;
+	}
 	span.appid {
 		color: Blue;
 		font-weight: Bold;
 	}
-	
 </style>
 </head>
 <body onload="disconnect(); connect();">
