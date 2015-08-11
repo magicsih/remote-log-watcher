@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tracker</title>
+<script src="sockjs-1.0.0.min.js"></script>
+<script src="stomp.js"></script>
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<style type="text/css">
+	html, body, #map-canvas { height: 100%; margin: 0; padding: 0;}
+</style>
+</head>
+<body onload="disconnect(); connect();">
+	<div id="map-canvas"></div>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+	<script type="text/javascript"src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBLaoJnGMsViuAB2h5iuXeUpWgeARr28Co"></script>
+	<script type="text/javascript">
+        var stompClient = null;
+        var appId = "default";
+        var canRetry = false;
+        var deviceIds = new Set();
+        
+        var map;
+        var centerLatlng = new google.maps.LatLng(37.485370,126.896596);
+        
+        var mapOptions = {
+          zoom: 8,
+          center: centerLatlng
+        }
+        
+        jQuery(document).ready(function(){
+        	google.maps.event.addDomListener(window, 'load', initialize);
+        });
+        
+        function initialize() {           
+            map = new google.maps.Map(document.getElementById('map-canvas'),  mapOptions);
+        }
+                        
+        function setConnected(connected) {
+        	canRetry = connected;
+        }
+        
+        function disconnect() {
+            if (stompClient != null) {
+                stompClient.disconnect();
+                log("Disconnected");
+            }
+            setConnected(false);
+        }
+        
+        function connect() {
+            var socket = new SockJS('/unity');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                setConnected(true);
+                stompClient.subscribe('/topic/tracker', function(msg){
+                	var log = JSON.parse(msg.body);
+                	handleLog(log.senderId, log.senderHost, log.type, log.message);
+                });
+            }, function(msg) {
+            	if(canRetry) {
+            		connect();
+            	}
+            });
+        }
+        
+        function handleLog(senderId, senderHost, type, message) {
+			var messages = message.split(",");
+			var latitude = messages[0];
+			var longitude = messages[1];
+			
+			var lastPosition = new google.maps.LatLng(latitude,longitude);
+			var marker = new google.maps.Marker({
+				position: lastPosition,
+				title: "P"
+			});
+			
+			marker.setMap(map);
+        }
+        
+    </script>
+</body>
+</html>

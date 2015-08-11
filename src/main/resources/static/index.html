@@ -50,7 +50,7 @@
 				<li role="presentation" class="active"><a href="#main" aria-controls="main" role="tab" data-toggle="tab">Main</a></li>
 			</ul>
 			<div class="tab-content">
-				<div role="tabpanel" class="tab-pane active" id="main"><ul id="tabcontent_main" class="loglist"></ul></div>
+				<div role="tabpanel" class="tab-pane active" id="main"><ul id="sourcelist"></ul><ul id="tabcontent_main" class="loglist"></ul></div>
 			</div>
 		</div>
 		<button onclick="connect();">Connect</button>
@@ -113,7 +113,7 @@
                 
                 log("Listening from application ID <span class='appid'>" + appId + "</span>. application ID can be changed by using a hash tag with URL like /#appId");
                 stompClient.subscribe('/topic/' + appId, function(msg){
-                	var log = JSON.parse(msg.body);
+                	var log = JSON.parse(msg.body);                	
                 	handleLog(log.senderId, log.senderHost, log.type, log.message);
                 });
             }, function(msg) {
@@ -122,23 +122,35 @@
             	}
             });
         }
+        
         function handleLog(senderId, senderHost, type, message) {
 	
         	if(deviceIds.has(senderId) == false) {
         		deviceIds.add(senderId);
         		
-        		jQuery('ul#logTabList li').removeClass('active');
-        		jQuery('#logTabPanel div.tab-content div').removeClass('active');
+//         		jQuery('ul#logTabList li').removeClass('active');
+//         		jQuery('#logTabPanel div.tab-content div').removeClass('active');
         		
-        		jQuery('ul#logTabList').append('<li role="presentation" class="active"><a href="#' + senderId.replace(/\./g,'_') +'" aria-controls="' + senderId.replace(/\./g,'_') + '" role="tab" data-toggle="tab">' + senderId + '</a></li>');
-            	jQuery('#logTabPanel div.tab-content').append('<div role="tabpanel" class="tab-pane active" id="'+ senderId.replace(/\./g,'_') +'"><ul id="tabcontent_' +  senderId.replace(/\./g,'_') + '" class="loglist"></ul></div>');
-            	
-            	
-            	jQuery('#logTabPanel a:last').tab('show');
-				jQuery('#logTabPanel a:last').click(function (e) { 
-	           		e.preventDefault();
-	                jQuery(this).tab('show');
-	           	 });
+        		jQuery('ul#logTabList').append('<li role="presentation" id="logtab_' + senderId.replace(/\./g,'_') + '" style="display:none"><a href="#' + senderId.replace(/\./g,'_') +'" aria-controls="' + senderId.replace(/\./g,'_') + '" role="tab" data-toggle="tab">' + senderId + '</a></li>');
+            	jQuery('#logTabPanel div.tab-content').append('<div role="tabpanel" class="tab-pane" id="'+ senderId.replace(/\./g,'_') +'"><ul id="tabcontent_' +  senderId.replace(/\./g,'_') + '" class="loglist"></ul></div>');
+            	            	
+        		jQuery('ul#sourcelist').append('<li><div class="checkbox"><label><input type="checkbox" id="chk_'+ senderId.replace(/\./g,'_') + '" data-senderid="' + senderId.replace(/\./g,'_') +'">' + senderId + '</label></div></li>');
+        		
+        		jQuery('#chk_' + senderId.replace(/\./g,'_')).change(function() {
+        			var senderId = jQuery(this).data('senderid');
+        			var checked = jQuery(this).is(":checked");
+        			if(checked) {
+        				jQuery('#logtab_' + senderId).show();
+        			} else{
+        				jQuery('#logtab_' + senderId).hide();
+        			}
+        		});
+        		
+//             	jQuery('#logTabPanel a:last').tab('show');
+// 				jQuery('#logTabPanel a:last').click(function (e) { 
+// 	           		e.preventDefault();
+// 	                jQuery(this).tab('show');
+// 	           	 });
         	}
         	
         	showMessage(senderId, type, message);
