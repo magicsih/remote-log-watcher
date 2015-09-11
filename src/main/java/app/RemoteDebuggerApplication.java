@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class RemoteDebuggerApplication {
 
-	public static void main(String[] args) throws IOException {
-		SpringApplication.run(RemoteDebuggerApplication.class, args);
-	}
+    public static void main(String[] args) throws IOException {
+        SpringApplication.run(RemoteDebuggerApplication.class, args);
+    }
 }

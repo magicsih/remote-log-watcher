@@ -62,7 +62,7 @@ public class RemoteDebuggerHandler extends SimpleChannelInboundHandler<DatagramP
 
     /**
      * Handle undefined log messages
-     * 
+     *
      * @param senderIp
      * @param log
      */
@@ -78,7 +78,7 @@ public class RemoteDebuggerHandler extends SimpleChannelInboundHandler<DatagramP
 
     /**
      * Handle log4j event messages
-     * 
+     *
      * @param senderIp
      * @param logEvent
      */
@@ -100,7 +100,7 @@ public class RemoteDebuggerHandler extends SimpleChannelInboundHandler<DatagramP
 
     /**
      * Check if packet is a serialized java object.
-     * 
+     *
      * @param packet
      * @return
      */
@@ -110,7 +110,7 @@ public class RemoteDebuggerHandler extends SimpleChannelInboundHandler<DatagramP
 
     /**
      * change byte array to hex string
-     * 
+     *
      * @param ba
      * @return
      */

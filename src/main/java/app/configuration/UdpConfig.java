@@ -18,21 +18,21 @@ import app.handler.RemoteDebuggerHandler;
 @Configuration
 public class UdpConfig {
 
-	private static final int PORT = Integer.parseInt(System.getProperty("port", "7686"));
+    private static final int PORT = Integer.parseInt(System.getProperty("port", "7686"));
 
-	@Autowired
-	@Qualifier("taskExecutor")
-	private TaskExecutor taskExecutor;
+    @Autowired
+    @Qualifier("taskExecutor")
+    private TaskExecutor taskExecutor;
 
-	@Autowired
-	private SimpMessagingTemplate template;
+    @Autowired
+    private SimpMessagingTemplate template;
 
-	@Bean
-	public Bootstrap bootstrap() throws InterruptedException {
-		EventLoopGroup group = new NioEventLoopGroup();
-		Bootstrap b = new Bootstrap();
-		b.group(group).channel(NioDatagramChannel.class).option(ChannelOption.SO_BROADCAST, true).handler(new RemoteDebuggerHandler(taskExecutor, template));
-		b.bind(PORT).sync().channel().closeFuture();
-		return b;
-	}
+    @Bean
+    public Bootstrap bootstrap() throws InterruptedException {
+        EventLoopGroup group = new NioEventLoopGroup();
+        Bootstrap b = new Bootstrap();
+        b.group(group).channel(NioDatagramChannel.class).option(ChannelOption.SO_BROADCAST, true).handler(new RemoteDebuggerHandler(taskExecutor, template));
+        b.bind(PORT).sync().channel().closeFuture();
+        return b;
+    }
 }
