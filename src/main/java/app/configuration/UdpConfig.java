@@ -30,7 +30,7 @@ public class UdpConfig {
 
     @Bean
     public Bootstrap bootstrap() throws InterruptedException {
-        EventLoopGroup group = new EpollEventLoopGroup();
+        EventLoopGroup group = new EpollEventLoopGroup(); // Windows 기반에서는 Epoll 동작 안함.
         Bootstrap b = new Bootstrap();
         b.group(group)
                 .channel(EpollDatagramChannel.class)
