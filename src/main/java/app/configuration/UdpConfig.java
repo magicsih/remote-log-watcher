@@ -1,11 +1,5 @@
 package app.configuration;
 
-import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioDatagramChannel;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +8,13 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import app.handler.RemoteDebuggerHandler;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.epoll.EpollChannelOption;
+import io.netty.channel.epoll.EpollDatagramChannel;
+import io.netty.channel.epoll.EpollEventLoopGroup;
 
 @Configuration
 public class UdpConfig {
@@ -29,9 +30,13 @@ public class UdpConfig {
 
     @Bean
     public Bootstrap bootstrap() throws InterruptedException {
-        EventLoopGroup group = new NioEventLoopGroup();
+        EventLoopGroup group = new EpollEventLoopGroup();
         Bootstrap b = new Bootstrap();
-        b.group(group).channel(NioDatagramChannel.class).option(ChannelOption.SO_BROADCAST, true).handler(new RemoteDebuggerHandler(taskExecutor, template));
+        b.group(group)
+                .channel(EpollDatagramChannel.class)
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .option(EpollChannelOption.SO_REUSEPORT, true)
+                .handler(new RemoteDebuggerHandler(taskExecutor, template));
         b.bind(PORT).sync().channel().closeFuture();
         return b;
     }
