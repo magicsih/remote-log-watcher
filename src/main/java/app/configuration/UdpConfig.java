@@ -12,9 +12,10 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollDatagramChannel;
 import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
 
 @Configuration
 public class UdpConfig {
@@ -30,14 +31,22 @@ public class UdpConfig {
 
     @Bean
     public Bootstrap bootstrap() throws InterruptedException {
-        EventLoopGroup group = new EpollEventLoopGroup(); // Windows 기반에서는 Epoll 동작 안함.
-        Bootstrap b = new Bootstrap();
-        b.group(group)
-                .channel(EpollDatagramChannel.class)
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .option(EpollChannelOption.SO_REUSEPORT, true)
-                .handler(new RemoteDebuggerHandler(taskExecutor, template));
-        b.bind(PORT).sync().channel().closeFuture();
-        return b;
+        if (System.getProperty("os.name").startsWith("Windows")) {
+            EventLoopGroup group = new NioEventLoopGroup();
+            Bootstrap b = new Bootstrap();
+            b.group(group)
+                    .channel(NioDatagramChannel.class)
+                    .option(ChannelOption.SO_BROADCAST, true)
+                    .handler(new RemoteDebuggerHandler(taskExecutor, template));
+            b.bind(PORT).sync().channel().closeFuture();
+            return b;
+        } else {
+            EventLoopGroup group = new EpollEventLoopGroup(); // Windows 기반에서는 Epoll 동작 안함.
+            Bootstrap b = new Bootstrap();
+            b.group(group).channel(EpollDatagramChannel.class).option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT).handler(
+                    new RemoteDebuggerHandler(taskExecutor, template));
+            b.bind(PORT).sync().channel().closeFuture();
+            return b;
+        }
     }
 }
