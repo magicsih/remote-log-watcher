@@ -1,19 +1,20 @@
 # remote-log-watcher
-This web application has two roles. Collecting log messages through UDP and displaying the messages on the web page.
+A web application designed to collect log messages through UDP and display them on a web page in real-time.
 
-# Concern
-Have you ever wanted to see logs of certain applications via web browsers? I made this application for that. 
-It supports java log4j remote log appender and custom pre-formatted logs.
+## Overview
+Ever wanted to monitor logs of specific applications via web browsers? Remote Log Watcher is here to help. It supports Java Log4j remote log appender and custom pre-formatted logs, making log monitoring accessible and straightforward.
 
-# How to execute
-- Maven compile will generate .jar file. 
-- Execute the jar file below commands.
+## How to Run
+1. Compile the application with Maven, which generates a .jar file.
+2. Execute the .jar file using the following command:
 ```bash
 java -jar remote-log-watcher.jar --spring.profiles.active=prod --server.port=80
 ```
-- Open the browser and connect to the server by typing URL like http://localhost/#appId
+3.Open your browser and connect to the server by entering a URL like http://localhost/#appId
 
-# Java Log4j2 Example
+## Java Log4j2 Example
+To configure Java Log4j2 for remote log watching, use the following XML configuration:
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
@@ -32,6 +33,8 @@ java -jar remote-log-watcher.jar --spring.profiles.active=prod --server.port=80
 ```
 
 # Unity Example
+To configure Unity for remote log watching, use the following C# script:
+
 ```csharp
 void Awake() 
 {
@@ -58,3 +61,8 @@ void HandleLog(string condition, string stackTrace, LogType type)
 	}
 }
 ```
+
+With this setup, you can easily monitor logs from Java and Unity applications directly in your web browser.
+
+# License
+This project is licensed under the terms of the MIT license.
